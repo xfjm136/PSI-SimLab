@@ -41,12 +41,6 @@ node --check dist/app.js
 
 Numerical checks cover wrapping invariance, units, deterministic generation, noiseless parameter recovery, network datum and closure, atmospheric prediction and model misspecification. Content checks validate bilingual completeness and reference identifiers. These checks do not establish accuracy on real radar data.
 
-## GitHub Pages
-
-Upload the extracted repository contents, including `.github/`. Select **GitHub Actions** as the Pages publishing source. The included workflow validates the code and deploys `dist/` for pushes to `main` or `master`, or via manual dispatch. All asset paths support a repository subdirectory.
-
-Alternatively, publish the contents of `dist/` from a branch root, with the included `.nojekyll`. Use either branch publishing or the workflow, not both.
-
 ## Conventions and scope
 
 - Positive LOS displacement is toward the satellite: d = −ΔR, phase = 4πd/λ.
