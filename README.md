@@ -2,7 +2,7 @@
 
 PS-InSAR 学习笔记，配有浏览器端数值算例。
 
-[English](README_EN.md) · [GitHub 仓库创建与发布](GITHUB_SETUP.md)
+[English](README_EN.md)
 
 整理相位与位移、振幅离散度、模糊度函数、网络平差、大气预测和时序拟合。每节将记号、公式、推导与算例放在一起，支持中英文切换。
 
