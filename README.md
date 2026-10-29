@@ -68,10 +68,6 @@ node tests/content.cjs
 - 大气例子假定残差已从时序中分离，固定协方差模型，不估计变差函数和未知趋势。
 - LOS 速度不能直接当作垂直沉降速度。更复杂的数据还需考虑相关噪声、模型检验和观测几何。
 
-## GitHub Pages
-
-上传解压后 `PSI-SimLab` 文件夹里的内容，保留 `dist/`、`tests/` 和 `.github/`。仓库的 **Settings → Pages → Source** 选择 **GitHub Actions**，然后运行 **Validate and deploy Pages** 工作流。详细步骤与仓库字段填写见 [GITHUB_SETUP.md](GITHUB_SETUP.md)。
-
 ## 文件
 
 | 路径 | 内容 |
