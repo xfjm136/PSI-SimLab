@@ -1,58 +1,104 @@
 # PSI-SimLab
 
-PS-InSAR study notes with browser-based numerical examples.
+Study notes on PS-InSAR, with numerical examples that run in the browser.
 
-[中文说明](README.md)
+[Live demo](https://xfjm136.github.io/PSI-SimLab/) · [中文](README.md)
 
-A dependency-free static site with six numerical examples. Inline and displayed equations use native MathML with a bundled Latin Modern Math font. Each tab contains its visualization, controls, equations, derivation, assumptions and DOI references. The interface and complete method notes are available in Chinese and English.
+The notes cover phase and displacement, amplitude dispersion, the ambiguity function, network adjustment, atmospheric prediction, and time-series fitting. Each section places notation, equations, derivations, and an interactive example together. The website supports Chinese and English.
 
-## Experiments
+Equations use native MathML with a locally bundled Latin Modern Math font. Fractions, summations, and scripts render without an external CDN or a runtime equation library.
 
-1. LOS displacement, continuous phase and modulo-2π observations.
-2. Amplitude-dispersion screening of synthetic scatterer candidates.
-3. A two-parameter ambiguity-function grid search, with a running optimum and residual phasors.
-4. Datum-constrained network adjustment and the effect of a known biased arc.
-5. Zero-mean simple kriging of isolated atmospheric residuals.
-6. Linear and annual displacement models, velocity estimates and residual diagnostics.
+## Topics
 
-The notation, equations and derivation appear directly below the plot. Playback supports pause/resume, timeline scrubbing and 0.5× / 1× / 2× speed. New sample is available for the four stochastic examples. Parameters recalculate the complete solution. AF metrics track evaluated candidates during playback; APS metrics track the applied correction. Other metrics describe the complete solution. JSON exports contain inputs, parameters, results, units and a synthetic-data flag.
+| Section | Content | Adjustable parameters |
+| --- | --- | --- |
+| 01 Phase observations | Continuous phase and wrapping into [−π, π) | LOS velocity |
+| 02 Candidate selection | Amplitude dispersion across 180 pixels | Selection threshold |
+| 03 Ambiguity function | Joint search for velocity and residual height | Phase noise |
+| 04 Network adjustment | Relative point velocities from arc differences | Arc bias, removal of a known anomalous arc |
+| 05 Atmospheric prediction | Simple kriging of atmospheric residuals | Correlation length |
+| 06 Model assessment | Residual comparison between linear and annual models | Seasonal amplitude, fitted model |
 
-## Run
+Amplitude samples, phase noise, atmospheric samples, and time-series noise are generated randomly when the page opens. Resampling replaces the current sample. Parameter changes, language switching, and parameter resets retain it. Phase conversion and network adjustment use deterministic inputs and therefore have no resampling control.
 
-Open `dist/index.html` directly. All scripts and styles are local and use no module imports, fetch requests or external CDN.
+Animations support pause, timeline scrubbing, and 0.5×, 1×, and 2× playback. The ambiguity-function example displays the best candidate evaluated so far. The atmospheric example applies the correction progressively. Other metrics report the complete solution.
 
-Optional development server:
+## Reading and interaction
 
-```bash
-python3 -m http.server 8000 --directory dist
+Open the [live demo](https://xfjm136.github.io/PSI-SimLab/) and select a section to view its animation and derivation.
+
+For offline reading, open `dist/index.html` directly in a browser. All resources are included in the project; no backend or external service is required.
+
+## Data export and reproduction
+
+JSON exports contain parameters, inputs, results, the seed used for the current sample, and a `synthetic: true` flag. The website does not use a fixed seed. Exported seeds allow a particular observation set to be reproduced. Sections without random observations export `seed: null`.
+
+The numerical functions in `dist/core.js` can also be called independently:
+
+```js
+const PSI = require('./dist/core.js');
+
+const observation = PSI.observations({
+  seed: 123,
+  noise: 0.25
+});
+
+const result = PSI.searchAF(observation);
+console.log(result.best);
 ```
 
-Open `http://localhost:8000`. Choose EN / 中文 in the navigation bar. Language changes preserve the selected experiment, parameters and random sample; the preference is retained locally. A `?lang=en` query can select English explicitly.
+Omitting `seed` generates a new seed. Supplying the same seed reproduces the same random inputs. The atmospheric function accepts `PSI.atmosphere(correlationLength, seed)`.
 
-## Verify
+## Numerical checks
 
-With Node.js installed, no package installation is required:
+With Node.js installed, run the following commands. No npm dependencies are required.
 
 ```bash
 node tests/numerics.cjs
 node tests/content.cjs
-node --check dist/app.js
 ```
 
-Numerical checks cover wrapping invariance, units, deterministic generation, noiseless parameter recovery, network datum and closure, atmospheric prediction and model misspecification. Content checks validate bilingual completeness and reference identifiers. These checks do not establish accuracy on real radar data.
+The checks cover phase wrapping and unit conversion, noiseless parameter recovery, the network datum and closure errors, sample reproducibility, spatial prediction, and model omission. Tests use fixed inputs for regression checks, independently of random sampling in the website.
 
-## Conventions and scope
+## Conventions and simplifications
 
-- Positive LOS displacement is toward the satellite: d = −ΔR, phase = 4πd/λ.
-- Wavelength: 0.056 m; range: 800 km; incidence angle: 35°. These are illustrative constants.
-- Displayed velocity is mm/yr; the phase model converts it to m/yr. Time is in years and residual height in meters.
-- A fresh seed is generated on page load. New sample replaces the current random observations while retaining parameters. Exported seeds reproduce individual samples; only regression tests use fixed fixtures.
-- The six experiments are independent. They do not form an operational processing chain.
-- AF grid search is not integer least squares. The network example adjusts continuous velocities with a known outlier location.
-- The APS example assumes atmospheric residuals have already been isolated. It does not perform blind separation, variogram estimation or unknown-trend fitting.
-- Synthetic errors are not real-world monitoring accuracy. LOS velocity is not vertical subsidence without additional geometry and assumptions.
-- Small normal systems use pivoted Gaussian elimination. Larger or ill-conditioned applications require appropriate QR/SVD solvers and numerical libraries.
+- LOS displacement toward the satellite is positive: $d=-\Delta R$, with $\varphi=4\pi d/\lambda$.
+- The wavelength is 0.056 m, slant range is 800 km, and incidence angle is 35°. Velocities are displayed in mm/yr and converted internally to m/yr.
+- The six sections use separate synthetic datasets. They do not form a complete processing chain or include real SLC preprocessing or regional monitoring results.
+- The ambiguity function uses a two-dimensional grid search. The network example adjusts continuous velocities and assumes the anomalous arc is known.
+- The atmospheric example assumes that residuals have already been separated from the time series. It uses a fixed covariance model without estimating a variogram or an unknown trend.
+- LOS velocity cannot be interpreted directly as vertical subsidence velocity. Practical analysis also requires attention to observation geometry, correlated noise, and model suitability.
+
+## Files
+
+| Path | Content |
+| --- | --- |
+| `dist/index.html` | Page structure |
+| `dist/content.js` | Bilingual notes, notation, and references |
+| `dist/core.js` | Numerical functions |
+| `dist/app.js` | Plotting, sampling, animation, and export |
+| `dist/styles.css` | Typography and responsive layout |
+| `dist/assets/fonts/` | Mathematical font and original license |
+| `tests/` | Numerical and content checks |
 
 ## References
 
-Seven verified DOI references are listed in `README.md`, in `dist/content.js`, and on the website. They cover PS theory, amplitude and phase-based selection, atmospheric errors, geodetic estimation and seasonal deformation. Referenced publications are not bundled. Original implementation is MIT licensed.
+1. van Leijen, F. J. (2014). *Persistent Scatterer Interferometry based on geodetic estimation theory*. Doctoral thesis, Delft University of Technology. [DOI](https://doi.org/10.4233/uuid:5dba48d7-ee26-4449-b674-caa8df93e71e)
+
+2. Ferretti, A., Prati, C., & Rocca, F. (2001). *Permanent scatterers in SAR interferometry*. IEEE Transactions on Geoscience and Remote Sensing, 39(1), 8–20. [DOI](https://doi.org/10.1109/36.898661)
+
+3. Ferretti, A., Prati, C., & Rocca, F. (2000). *Nonlinear subsidence rate estimation using permanent scatterers in differential SAR interferometry*. IEEE Transactions on Geoscience and Remote Sensing, 38(5), 2202–2212. [DOI](https://doi.org/10.1109/36.868878)
+
+4. Hooper, A., Zebker, H., Segall, P., & Kampes, B. (2004). *A new method for measuring deformation on volcanoes and other natural terrains using InSAR persistent scatterers*. Geophysical Research Letters, 31, L23611. [DOI](https://doi.org/10.1029/2004GL021737)
+
+5. Hooper, A., Segall, P., & Zebker, H. (2007). *Persistent scatterer interferometric synthetic aperture radar for crustal deformation analysis, with application to Volcán Alcedo, Galápagos*. Journal of Geophysical Research: Solid Earth, 112, B07407. [DOI](https://doi.org/10.1029/2006JB004763)
+
+6. Hanssen, R. F. (2001). *Radar Interferometry: Data Interpretation and Error Analysis*. Springer, Remote Sensing and Digital Image Processing, vol. 2. [DOI](https://doi.org/10.1007/0-306-47633-9)
+
+7. Colesanti, C., Ferretti, A., Novali, F., Prati, C., & Rocca, F. (2003). *SAR monitoring of progressive and seasonal ground deformation using the permanent scatterers technique*. IEEE Transactions on Geoscience and Remote Sensing, 41(7), 1685–1701. [DOI](https://doi.org/10.1109/TGRS.2003.813278)
+
+Relevant references are listed in each section. Copyright in the cited works remains with their respective authors and rights holders. This repository does not distribute paper or book PDFs or reproduce their original figures.
+
+## License
+
+Original code is released under the [MIT License](LICENSE). Latin Modern Math retains its original license; see `dist/assets/fonts/`.
