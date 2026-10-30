@@ -21,7 +21,10 @@ Equations use native MathML with a locally bundled Latin Modern Math font. Fract
 
 Amplitude samples, phase noise, atmospheric samples, and time-series noise are generated randomly when the page opens. Resampling replaces the current sample. Parameter changes, language switching, and parameter resets retain it. Phase conversion and network adjustment use deterministic inputs and therefore have no resampling control.
 
-Animations support pause, timeline scrubbing, and 0.5×, 1×, and 2× playback. The ambiguity-function example displays the best candidate evaluated so far. The atmospheric example applies the correction progressively. Other metrics report the complete solution.
+Animations support pause, timeline scrubbing, and 0.5×, 1×, and 2× playback.
+The six chapters prioritize linked numerical graphics, with equations, derivations and chapter references directly below the plots. Phase playback advances physical time; candidate selection accumulates acquisitions; AF playback replays a precomputed grid search with separate trial, best and truth markers. Network playback applies a selected arc bias and recomputes the adjustment, with a selectable reference. Atmospheric playback applies a correction fraction and exposes kriging weights at a selected location. Time-series playback starts with 12 acquisitions and refits both models as each new acquisition arrives; curves, components, velocities and residuals update together.
+
+The interface uses a monochrome shell and muted plot colors. Plots use the full content width, with controls and metrics below them. Sticky chapter navigation, related chapters and a chapter selector support comparison. Equations, derivations and citations appear directly below each plot; the full bibliography is listed on the page. Chapters play once on entry unless disabled; reduced-motion preferences disable automatic playback.
 
 ## Reading and interaction
 
@@ -29,9 +32,11 @@ Open the [live demo](https://xfjm136.github.io/PSI-SimLab/) and select a section
 
 For offline reading, open `dist/index.html` directly in a browser. All resources are included in the project; no backend or external service is required.
 
+Run `python -m http.server 8000 --bind 127.0.0.1 --directory dist` and visit `http://localhost:8000`. Use `?stage=3&lang=en#lab` for a direct chapter link.
+
 ## Data export and reproduction
 
-JSON exports contain parameters, inputs, results, the seed used for the current sample, and a `synthetic: true` flag. The website does not use a fixed seed. Exported seeds allow a particular observation set to be reproduced. Sections without random observations export `seed: null`.
+JSON exports (schema version 4) contain parameters, inputs, complete results, the displayed `currentView`, playback progress, the seed used for the current sample, and a `synthetic: true` flag. The website does not use a fixed seed. Exported seeds allow a particular observation set to be reproduced. Sections without random observations export `seed: null`.
 
 The numerical functions in `dist/core.js` can also be called independently:
 

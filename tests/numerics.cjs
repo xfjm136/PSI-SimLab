@@ -15,3 +15,27 @@ for(const length of [.05,.25,.65])assert.ok(P.atmosphere(length,81).after< P.atm
 const low=P.candidates(2026).filter(p=>p.da<=.15).length,high=P.candidates(2026).filter(p=>p.da<=.45).length;assert.ok(high>low);
 const obs=P.timeSeries({season:5,modelType:'linear',seed:2026}),seasonal=P.timeSeries({season:5,modelType:'seasonal',seed:2026});assert.ok(seasonal.rms<obs.rms/2);near(P.timeSeries({season:5,noise:0,modelType:'seasonal',seed:2026}).x[1],-8);
 console.log(JSON.stringify({status:'PASS',checks:'wrapping, units, dispersion, coherence, deterministic generation, AF recovery, network reference/closure, APS prediction, model misspecification',aps_rmse_before:atmo.before,aps_rmse_after:atmo.after,linear_rms:obs.rms,seasonal_rms:seasonal.rms},null,2));
+
+// Changing the reference changes only the datum, not fitted arc differences.
+for (const badEdge of [0, 8, 13]) {
+ const base = P.network(8, false, {badEdge, reference: 0});
+ for (let reference = 0; reference < 7; reference++) {
+  const result = P.network(8, false, {badEdge, reference});
+  near(result.estimate[reference], 0);
+  for (const e of result.edges) near(result.estimate[e.j]-result.estimate[e.i], base.estimate[e.j]-base.estimate[e.i]);
+  near(P.network(8, true, {badEdge, reference}).rmse, 0);
+ }
+}
+// The displayed sample weights must reproduce the predictor at a grid location.
+const gridIndex = 17 * atmo.size + 23, target = [23/(atmo.size-1),17/(atmo.size-1)];
+const covariance = atmo.pts.map(([x,y])=>Math.exp(-Math.hypot(x-target[0],y-target[1])/.25));
+const weights = P.solve(atmo.K, covariance);
+near(weights.reduce((sum,w,i)=>sum+w*atmo.values[i],0),atmo.prediction[gridIndex]);
+console.log('PASS: selectable biased arcs, reference invariance, kriging weight reconstruction.');
+
+for (let badEdge = 0; badEdge < 14; badEdge++) {
+ const adjusted = P.network(8, false, {badEdge});
+ near(Math.abs(adjusted.closure), 8);
+ near(P.network(8, true, {badEdge}).closure, 0);
+ near(Math.abs(P.network(-5, false, {badEdge}).closure), 5);
+}
